@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String   @id @default(cuid())
+  clerkId              String   @unique
+  email                String   @unique
+  name                 String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  plan                 Plan     @default(FREE)
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String?  @unique
+
+  workspaces      WorkspaceMember[]
+  apiLogs         ApiLog[]
+  copilotThreads  CopilotThread[]
+  usageRecords    UsageRecord[]
+}
+
+model Workspace {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ownerId        String
+
+  members        WorkspaceMember[]
+  apiLogs        ApiLog[]
+  copilotThreads CopilotThread[]
+  scenarios      SandboxScenario[]
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        WorkspaceRole @default(MEMBER)
+  joinedAt    DateTime      @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+}
+
+model ApiLog {
+  id           String   @id @default(cuid())
+  userId       String
+  workspaceId  String?
+  apiType      ApiType
+  requestBody  Json
+  responseBody Json
+  statusCode   Int
+  latencyMs    Int
+  scenarioId   String?
+  createdAt    DateTime @default(now())
+
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace    Workspace?       @relation(fields: [workspaceId], references: [id])
+  scenario     SandboxScenario? @relation(fields: [scenarioId], references: [id])
+}
+
+model SandboxScenario {
+  id          String   @id @default(cuid())
+  name        String
+  apiType     ApiType
+  config      Json
+  workspaceId String
+  createdAt   DateTime @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  apiLogs     ApiLog[]
+}
+
+model CopilotThread {
+  id          String   @id @default(cuid())
+  userId      String
+  workspaceId String?
+  title       String?
+  context     String?
+  messages    Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+}
+
+model UsageRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  month       String
+  apiCalls    Int      @default(0)
+  copilotMsgs Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+}
+
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  company   String?
+  createdAt DateTime @default(now())
+}
+
+enum Plan {
+  FREE
+  PRO
+  TEAM
+  ENTERPRISE
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum ApiType {
+  KYC
+  AML
+  OPEN_BANKING
+  ACH
+  SWIFT
+  SEPA
+}

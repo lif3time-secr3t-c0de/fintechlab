@@ -1,0 +1,10 @@
+{
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "crons": [{ "path": "/api/billing/report-usage", "schedule": "0 2 1 * *" }],
+  "functions": {
+    "app/api/**/*": {
+      "maxDuration": 30
+    }
+  }
+}

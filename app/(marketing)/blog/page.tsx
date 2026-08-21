@@ -1,0 +1,1 @@
+export default function BlogPage(): JSX.Element { return <main className="mx-auto max-w-4xl space-y-4 px-4 py-16"><h1 className="text-4xl font-bold">FintechLab insights</h1><p className="rounded-lg border border-dashed border-border p-6 text-muted-foreground">Engineering and compliance articles are coming soon. Join the waitlist to receive the first issue.</p></main>; }

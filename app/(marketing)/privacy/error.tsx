@@ -1,0 +1,1 @@
+"use client"; export default function ErrorPage({ reset }: { reset: () => void }): JSX.Element { return <div role="alert" className="p-8">Privacy policy failed to load. <button className="underline" onClick={reset}>Retry</button></div>; }
